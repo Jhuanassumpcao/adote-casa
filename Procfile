@@ -1,2 +1,2 @@
-release: npm install @adonisjs/assembler --save-dev && npm install && ENV_SILENT=true node ace migration:run --force
-web: npm run start:prod
+release: sh ./release.sh
+web: npm run start
