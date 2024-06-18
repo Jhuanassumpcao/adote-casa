@@ -22,6 +22,10 @@ export default class extends BaseSchema {
       table.string('city').notNullable()
       table.string('state').notNullable()
       table.string('file_url').nullable()
+      table.float('value').nullable()
+      table.string('bairro').notNullable()
+      table.string('cep').notNullable()
+      table.string('number').notNullable()
 
       table.timestamp('created_at')
       table.timestamp('updated_at')

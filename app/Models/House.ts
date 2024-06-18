@@ -28,13 +28,25 @@ export default class House extends BaseModel {
   public state: string
 
   @column()
-  declare file_url: string
+  public file_url: string
+
+  @column()
+  public value: number
+
+  @column()
+  public bairro:  string
+
+  @column()
+  public cep: string
+
+  @column()
+  public number: string
 
   @belongsTo(() => Recipient, {
-    localKey: 'cadastred_by_user_id',
-    foreignKey: 'user_id',
+    localKey: 'user_id',
+    foreignKey: 'cadastred_by_user_id',
   })
-  public user: BelongsTo<typeof Recipient>
+  public recipient: BelongsTo<typeof Recipient>
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime

@@ -11,6 +11,7 @@ export default class RecipientsController {
     }
     
     public async store({request, response}: HttpContextContract) {
+        console.log(request)
         const recipientsData =  await request.validate(RecipientsInfoValidator)
         console.log(recipientsData)
         const trx = await Database.transaction()

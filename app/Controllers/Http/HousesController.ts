@@ -3,7 +3,7 @@ import House from 'App/Models/House'
 
 export default class HousesController {
     public async index({response}: HttpContextContract) {
-        const houses = await House.all()
+        const houses = await House.query().preload('recipient')
         return response.ok(houses)
     }
     
