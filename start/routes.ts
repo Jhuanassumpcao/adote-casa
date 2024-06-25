@@ -27,3 +27,5 @@ Route.get('/', async () => {
 Route.resource('recipients', 'RecipientsController').apiOnly()
 Route.resource('houses', 'HousesController').apiOnly()
 Route.post('/login', 'UsersController.login')
+Route.resource('donations', 'DonationsController').apiOnly()
+Route.get('/donation/:receiptName', 'DonationsController.show')

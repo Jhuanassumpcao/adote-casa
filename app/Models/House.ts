@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon'
-import { BaseModel, BelongsTo, belongsTo, column } from '@ioc:Adonis/Lucid/Orm'
+import { BaseModel, BelongsTo, belongsTo, HasMany, hasMany, column } from '@ioc:Adonis/Lucid/Orm'
 import Recipient from './Recipient'
+import Donation from './Donation'
 
 export default class House extends BaseModel {
   @column({ isPrimary: true })
@@ -8,6 +9,9 @@ export default class House extends BaseModel {
 
   @column()
   public cadastred_by_user_id: number
+
+  @column()
+  public house_id: number
 
   @column()
   public title: string
@@ -34,7 +38,7 @@ export default class House extends BaseModel {
   public value: number
 
   @column()
-  public bairro:  string
+  public bairro: string
 
   @column()
   public cep: string
@@ -47,6 +51,11 @@ export default class House extends BaseModel {
     foreignKey: 'cadastred_by_user_id',
   })
   public recipient: BelongsTo<typeof Recipient>
+
+  @hasMany(() => Donation, {
+    foreignKey: 'house_id',
+  })
+  public donations: HasMany<typeof Donation>
 
   @column.dateTime({ autoCreate: true })
   public createdAt: DateTime
