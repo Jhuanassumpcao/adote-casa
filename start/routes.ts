@@ -19,13 +19,30 @@
 */
 
 import Route from '@ioc:Adonis/Core/Route'
+// import Recipient from 'App/Models/Recipient'
 
 Route.get('/', async () => {
   return { hello: 'world' }
 })
 
-Route.resource('recipients', 'RecipientsController').apiOnly()
-Route.resource('houses', 'HousesController').apiOnly()
+// RECIPIENTS
+Route.get("/recipients", "RecipientsController.index")
+Route.post("/recipients", "RecipientsController.store")
+Route.get("/recipients/:id", "RecipientsController.show")
+Route.put("/recipients/:id", "RecipientsController.update")
+Route.delete("/recipients/:id", "RecipientsController.destroy")
+// Route.get('/recipients/:id/houses', 'RecipientsController.showHouses')
+
+// HOUSES
+Route.get("/houses", "HousesController.index")
+Route.post("/houses", "HousesController.store")
+Route.get("/houses/:id", "HousesController.show")
+Route.put("/houses/:id", "HousesController.update")
+Route.delete("/houses/:id", "HousesController.destroy")
+
+// LOGIN
 Route.post('/login', 'UsersController.login')
+
+// ??
 Route.resource('donations', 'DonationsController').apiOnly()
 Route.get('/donation/:receiptName', 'DonationsController.show')
