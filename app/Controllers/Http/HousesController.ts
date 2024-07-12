@@ -3,8 +3,34 @@ import House from 'App/Models/House'
 
 export default class HousesController {
     // GET /houses
-    public async index({response}: HttpContextContract) {
-        const houses = await House.query().preload('recipient')
+    public async index({response, request}: HttpContextContract) {
+        const {state, city, ownerid, limitvalue, page, perPage} = request.qs();
+        console.log(state, city)
+        
+        const query = House.query().preload('recipient');
+
+        if (state){
+            query.where('state', state);
+        }
+
+        if (city){
+            query.where('city', city);
+        }
+
+        if (ownerid){
+            query.where('cadastred_by_user_id', ownerid);
+        }
+
+        if (limitvalue){
+            query.where('value', '<=', limitvalue);
+        }
+
+        const currentPage = page || 1;
+        const resultsPerPage = perPage || 10;
+
+        // Executa a consulta com paginação
+        const houses = await query.paginate(currentPage, resultsPerPage);
+
         return response.ok(houses)
     }
     
@@ -54,5 +80,21 @@ export default class HousesController {
         const house = await House.findOrFail(params.id)
         await house.delete()
         return response.noContent()
+    }
+
+    public async mine({auth, response}: HttpContextContract) {
+        try{
+            await auth.use('api').authenticate()
+            const user = auth.use('api').user
+
+            if (!user) {
+                throw new Error('You are not authorized!')
+            }
+
+            const houses = await House.query().where('cadastred_by_user_id', user.id)
+            return response.ok(houses)
+        } catch { 
+            return response.unauthorized({ message: 'You are not authorized!' })
+        }
     }
 }

@@ -36,6 +36,7 @@ Route.delete("/recipients/:id", "RecipientsController.destroy")
 // HOUSES
 Route.get("/houses", "HousesController.index")
 Route.post("/houses", "HousesController.store")
+Route.get("/houses/mine", "HousesController.mine")
 Route.get("/houses/:id", "HousesController.show")
 Route.put("/houses/:id", "HousesController.update")
 Route.delete("/houses/:id", "HousesController.destroy")
