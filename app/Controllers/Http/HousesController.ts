@@ -4,7 +4,7 @@ import House from 'App/Models/House'
 export default class HousesController {
     // GET /houses
     public async index({response, request}: HttpContextContract) {
-        const {state, city, ownerid, limitvalue, page, perPage} = request.qs();
+        const {state, city, ownerid, maxValue, page, perPage} = request.qs();
         console.log(state, city)
         
         const query = House.query().preload('recipient');
@@ -21,8 +21,8 @@ export default class HousesController {
             query.where('cadastred_by_user_id', ownerid);
         }
 
-        if (limitvalue){
-            query.where('value', '<=', limitvalue);
+        if (maxValue){
+            query.where('value', '<=', maxValue);
         }
 
         const currentPage = page || 1;
