@@ -26,7 +26,7 @@ export default class HousesController {
         }
 
         const currentPage = page || 1;
-        const resultsPerPage = perPage || 10;
+        const resultsPerPage = Math.max(1, Math.min(perPage || 10, 50));
 
         // Executa a consulta com paginação
         const houses = await query.paginate(currentPage, resultsPerPage);
