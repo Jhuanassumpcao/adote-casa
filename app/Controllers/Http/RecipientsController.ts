@@ -30,9 +30,17 @@ export default class RecipientsController {
         return response.ok(recipient)
     }
     
-    public async update({params, request, response}: HttpContextContract) {
-        const data = request.all()
-        const recipient = await Recipient.findOrFail(params.id)
+    public async update({auth, params, request, response}: HttpContextContract) {
+        const data = request.except(['email'])
+        const email = request.input('email')
+        await auth.use('api').authenticate()
+        const user = auth.use('api').user
+        if (email) {
+            const userRecord = await User.findOrFail(user?.id)
+            userRecord.email = email
+            await userRecord.save()
+        }
+        const recipient = await Recipient.findOrFail(user?.id)
         recipient.merge(data)
         await recipient.save()
         return response.ok(recipient)

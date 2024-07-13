@@ -31,7 +31,7 @@ Route.get('/recipients/me', 'RecipientsController.view')
 Route.get("/recipients", "RecipientsController.index")
 Route.post("/recipients", "RecipientsController.store")
 Route.get("/recipients/:id", "RecipientsController.show")
-Route.put("/recipients/:id", "RecipientsController.update")
+Route.put("/recipients/me", "RecipientsController.update")
 Route.delete("/recipients/:id", "RecipientsController.destroy")
 
 // HOUSES
