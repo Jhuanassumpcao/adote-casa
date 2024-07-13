@@ -39,19 +39,32 @@ export default class HousesController {
         try {
             await auth.use('api').authenticate()
             const user = auth.use('api').user
-
             if (!user) {
                 throw new Error('You are not authorized!')
             }
         
-            const houseData = request.all()
+            const houseData = request.only([
+                'title', 
+                'description', 
+                'pixkey', 
+                'address', 
+                'city', 
+                'state', 
+                'value', 
+                'bairro', 
+                'cep', 
+                'number'
+            ])
+        
             const house = new House()
             house.fill(houseData)
             house.cadastred_by_user_id = user.id
+
             await house.save()
-        
-        return response.created({ message: 'House created successfully!', house })
-        } catch {
+
+            return response.created({ message: 'House created successfully!', house })
+        } catch (error) {
+            console.error('Error creating house:', error)
             return response.unauthorized({ message: 'You are not authorized!' })
         }
     }
@@ -77,7 +90,6 @@ export default class HousesController {
         try{
             await auth.use('api').authenticate()
             const user = auth.use('api').user
-            const target_id = params.id
 
             if (!user) {
                 throw new Error('You are not authorized!')
