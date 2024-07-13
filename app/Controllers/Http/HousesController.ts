@@ -38,10 +38,7 @@ export default class HousesController {
     public async store({auth, request, response}: HttpContextContract) {
         try {
             await auth.use('api').authenticate()
-            console.log("autenticou")
             const user = auth.use('api').user
-            console.log("achou user")
-
 
             if (!user) {
                 throw new Error('You are not authorized!')
@@ -76,10 +73,28 @@ export default class HousesController {
     }
 
     // DELETE /houses/:id
-    public async destroy({params, response}: HttpContextContract) {
-        const house = await House.findOrFail(params.id)
-        await house.delete()
-        return response.noContent()
+    public async destroy({auth, params, response}: HttpContextContract) {
+        try{
+            await auth.use('api').authenticate()
+            const user = auth.use('api').user
+            const target_id = params.id
+
+            if (!user) {
+                throw new Error('You are not authorized!')
+            }
+
+            const house = await House.findOrFail(params.id)
+
+            if (house.cadastred_by_user_id !== user.id) {
+                throw new Error('You are not authorized!')
+            }
+
+            await house.delete()
+            return response.noContent()
+        } catch {
+            return response.unauthorized({ message: 'You are not authorized!' })
+        }
+        
     }
 
     public async mine({auth, response}: HttpContextContract) {

@@ -11,9 +11,7 @@ export default class RecipientsController {
     }
     
     public async store({request, response}: HttpContextContract) {
-        console.log(request)
         const recipientsData =  await request.validate(RecipientsInfoValidator)
-        console.log(recipientsData)
         const trx = await Database.transaction()
         try{
             const user = await User.create({email: recipientsData.email, password: recipientsData.password}, {client: trx} )
@@ -44,5 +42,30 @@ export default class RecipientsController {
         const recipient = await Recipient.findOrFail(params.id)
         await recipient.delete()
         return response.noContent()
+    }
+
+    public async view({response, auth}: HttpContextContract) {
+        try {
+            await auth.use('api').authenticate()
+            const user = auth.use('api').user
+            const recipient = await Recipient.findBy('user_id', user?.id);
+
+            if (!user || !recipient) {
+                throw new Error('You are not authorized!')
+            }
+
+            const data = {
+                email : user.email,
+                name: recipient.name,
+                state: recipient.state,
+                city: recipient.city,
+                phone: recipient.phone,
+                createdAt: recipient.createdAt,
+            }
+        
+            return response.ok(data)
+        } catch {
+            return response.unauthorized({ message: 'You are not authorized!' })
+        }
     }
 }

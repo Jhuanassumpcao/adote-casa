@@ -26,12 +26,13 @@ Route.get('/', async () => {
 })
 
 // RECIPIENTS
+//se mudar a ordem para de funcionar deixar assim
+Route.get('/recipients/me', 'RecipientsController.view')
 Route.get("/recipients", "RecipientsController.index")
 Route.post("/recipients", "RecipientsController.store")
 Route.get("/recipients/:id", "RecipientsController.show")
 Route.put("/recipients/:id", "RecipientsController.update")
 Route.delete("/recipients/:id", "RecipientsController.destroy")
-// Route.get('/recipients/:id/houses', 'RecipientsController.showHouses')
 
 // HOUSES
 Route.get("/houses", "HousesController.index")
