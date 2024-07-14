@@ -12,7 +12,6 @@ export default class DonationsController {
 
     public async show({ params, response }: HttpContextContract) {
         const receiptName = params.receiptName
-        console.log(params)
         const filePath = path.join(Application.tmpPath('uploads'), receiptName)
 
         try {

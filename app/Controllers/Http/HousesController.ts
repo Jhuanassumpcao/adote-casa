@@ -1,5 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
+import Application from '@ioc:Adonis/Core/Application'
+import Env from '@ioc:Adonis/Core/Env'
+import path from 'path'
+import fs from 'fs'
 
 import House from 'App/Models/House'
 import Recipient from 'App/Models/Recipient'
@@ -9,7 +13,6 @@ export default class HousesController {
     // GET /houses
     public async index({response, request}: HttpContextContract) {
         const {state, city, ownerid, maxValue, page, perPage} = request.qs();
-        console.log(state, city)
         
         const query = Database
             .from('houses')
@@ -48,6 +51,15 @@ export default class HousesController {
             .select('recipients.name as owner_name')
             .paginate(currentPage, resultsPerPage)
 
+        // houses.file_url contains the path to the image on system
+        houses.forEach(house => {
+            if (house.file_url) {
+              house.file_url = `${Env.get('APP_URL')}/uploads/${path.basename(house.file_url)}`
+            } else {
+              house.file_url = null
+            }
+        })
+
         return response.ok(houses)
     }
     
@@ -59,7 +71,23 @@ export default class HousesController {
             if (!user) {
                 throw new Error('You are not authorized!')
             }
-        
+
+            
+            const image = request.file('file_url', {
+                size: '2mb',
+                extnames: ['jpg', 'png', 'jpeg'],
+            })
+    
+            var file_url: string | null = null;
+
+            if (image) {
+                file_url = new Date().getTime().toString() + '.' + image.extname
+    
+                await image.move(Application.tmpPath('uploads'), {
+                    name: file_url,
+                })
+            }
+            
             const houseData = request.only([
                 'title', 
                 'description', 
@@ -72,10 +100,11 @@ export default class HousesController {
                 'cep', 
                 'number'
             ])
-        
+
             const house = new House()
             house.fill(houseData)
             house.cadastred_by_user_id = user.id
+            house.file_url = file_url
 
             await house.save()
 
@@ -94,23 +123,49 @@ export default class HousesController {
         const receiptName = await Recipient.findOrFail(house.cadastred_by_user_id)
         const donations = await Donation.query().where('house_id', house.id).select('donation_value').exec()
         
+        if (house.file_url) {
+            house.file_url = `${Env.get('APP_URL')}/uploads/${path.basename(house.file_url)}`
+        } else {
+            house.file_url = null
+        }
+
         const return_data = {
             ...house.toJSON(),
             owner_name: receiptName.name,
             total_donations: donations.reduce((acc, donation) => acc + parseInt(donation.donationValue), 0)
         }
-
-        // house.owner_name = receiptName.name
-        // house.total_donations = donations.reduce((acc, donation) => acc + donation.donation_value, 0)
-
+        
+    
         return response.ok(return_data)
     }
     
     // PUT /houses/:id
     public async update({params, request, response}: HttpContextContract) {
+
         const data = request.all()
         const house = await House.findOrFail(params.id)
+
+        const image = request.file('file_url', {
+            size: '2mb',
+            extnames: ['jpg', 'png', 'jpeg'],
+        })
+
+        var file_url: string | null = null;
+
+        if (image) {
+            file_url = new Date().getTime().toString() + '.' + image.extname
+
+            await image.move(Application.tmpPath('uploads'), {
+                name: file_url,
+            })
+
+            data.file_url = file_url
+        }else{
+            data.file_url = house.file_url
+        }
+
         house.merge(data)
+
         await house.save()
         return response.ok(house)
     }

@@ -32,7 +32,7 @@ export default class House extends BaseModel {
   public state: string
 
   @column()
-  public file_url: string
+  public file_url: string | null
 
   @column()
   public value: number
