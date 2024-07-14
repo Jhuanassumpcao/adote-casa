@@ -1,6 +1,8 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Application from '@ioc:Adonis/Core/Application'
 import Donation from 'App/Models/Donation'
+import House from 'App/Models/House'
+
 import fs from 'fs'
 import path from 'path'
 
@@ -26,27 +28,27 @@ export default class DonationsController {
     }
 
     public async store({ request, response }: HttpContextContract) {
-        const houseId = request.input('house_id')
-        console.log("aaaaaaaaaaaaaaaa")
-
-        const images = request.file('receipt', {
+        const image = request.file('image', {
             size: '2mb',
             extnames: ['jpg', 'png', 'jpeg'],
         })
 
-        if (!images) {
+        if (!image) {
             return response.status(400).json({ error: 'Image is required' })
         }
 
-        const receiptName = new Date().getTime().toString() + '.' + images.extname
+        const fileName = new Date().getTime().toString() + '.' + image.extname
 
-        await images.move(Application.tmpPath('uploads'), {
-            name: receiptName,
+        await image.move(Application.tmpPath('uploads'), {
+            name: fileName,
         })
 
+
         const donation = await Donation.create({
-            house_id: houseId,
-            receipt: receiptName,
+            house_id: request.input('house_id'),
+            fileName: fileName,
+            description: request.input('description'),
+            donationValue: request.input('donationValue'),
         })
 
         return response.status(201).json(donation)

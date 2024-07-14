@@ -14,7 +14,9 @@ export default class extends BaseSchema {
         .onUpdate('CASCADE')
         .onDelete('CASCADE')
         .notNullable()
-      table.string('receipt').notNullable()
+      table.string('file_name').notNullable()
+      table.string('description').notNullable()
+      table.decimal('donation_value', 12, 2).notNullable()
 
       /**
        * Uses timestamptz for PostgreSQL and DATETIME2 for MSSQL

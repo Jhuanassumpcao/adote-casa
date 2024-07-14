@@ -1,5 +1,9 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import Database from '@ioc:Adonis/Lucid/Database'
+
 import House from 'App/Models/House'
+import Recipient from 'App/Models/Recipient'
+import Donation from 'App/Models/Donation'
 
 export default class HousesController {
     // GET /houses
@@ -7,7 +11,13 @@ export default class HousesController {
         const {state, city, ownerid, maxValue, page, perPage} = request.qs();
         console.log(state, city)
         
-        const query = House.query().preload('recipient');
+        const query = Database
+            .from('houses')
+            .leftJoin('donations', 'houses.id', 'donations.house_id')
+            .leftJoin('users', 'houses.cadastred_by_user_id', 'users.id')
+            .select('houses.*')
+            .select(Database.raw('COALESCE(SUM(donations.donation_value), 0) as total_donations'))
+            .groupBy('houses.id')
 
         if (state){
             query.where('state', state);
@@ -28,8 +38,15 @@ export default class HousesController {
         const currentPage = page || 1;
         const resultsPerPage = Math.max(1, Math.min(perPage || 10, 50));
 
-        // Executa a consulta com paginação
-        const houses = await query.paginate(currentPage, resultsPerPage);
+        //busca em ordem aqui
+        const houses = await Database
+            .from(query.as('subquery'))
+            .whereRaw('subquery.total_donations < subquery.value')
+            .orderBy('subquery.total_donations')
+            .leftJoin('recipients', 'subquery.cadastred_by_user_id', 'recipients.user_id')
+            .select('subquery.*')
+            .select('recipients.name as owner_name')
+            .paginate(currentPage, resultsPerPage)
 
         return response.ok(houses)
     }
@@ -73,7 +90,20 @@ export default class HousesController {
     // GET /houses/:id
     public async show({params, response}: HttpContextContract) {
         const house = await House.findOrFail(params.id)
-        return response.ok(house)
+
+        const receiptName = await Recipient.findOrFail(house.cadastred_by_user_id)
+        const donations = await Donation.query().where('house_id', house.id).select('donation_value').exec()
+        
+        const return_data = {
+            ...house.toJSON(),
+            owner_name: receiptName.name,
+            total_donations: donations.reduce((acc, donation) => acc + parseInt(donation.donationValue), 0)
+        }
+
+        // house.owner_name = receiptName.name
+        // house.total_donations = donations.reduce((acc, donation) => acc + donation.donation_value, 0)
+
+        return response.ok(return_data)
     }
     
     // PUT /houses/:id
@@ -117,11 +147,20 @@ export default class HousesController {
             if (!user) {
                 throw new Error('You are not authorized!')
             }
+            
+            const houses = await Database
+                .from('houses')
+                .select('houses.*')
+                .where('cadastred_by_user_id', user.id)
+                .leftJoin('donations', 'houses.id', 'donations.house_id')
+                .select('houses.*')
+                .select(Database.raw('COALESCE(SUM(donations.donation_value), 0) as total_donations'))
+                .groupBy('houses.id')
 
-            const houses = await House.query().where('cadastred_by_user_id', user.id)
             return response.ok(houses)
         } catch { 
             return response.unauthorized({ message: 'You are not authorized!' })
         }
     }
+
 }

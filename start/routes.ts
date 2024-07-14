@@ -45,6 +45,6 @@ Route.delete("/houses/:id", "HousesController.destroy")
 // LOGIN
 Route.post('/login', 'UsersController.login')
 
-// ??
+// DONATIONS
 Route.resource('donations', 'DonationsController').apiOnly()
 Route.get('/donation/:receiptName', 'DonationsController.show')

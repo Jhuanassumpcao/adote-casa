@@ -10,7 +10,13 @@ export default class Donation extends BaseModel {
   public house_id: number
 
   @column()
-  public receipt: string
+  public fileName: string
+
+  @column()
+  public description: string
+
+  @column()
+  public donationValue: number
 
   @belongsTo(() => House, {
     localKey: 'house_id',
