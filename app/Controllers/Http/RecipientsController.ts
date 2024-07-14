@@ -68,4 +68,27 @@ export default class RecipientsController {
             return response.unauthorized({ message: 'You are not authorized!' })
         }
     }
+
+    public async edit({request, response, auth}: HttpContextContract) {
+        try {
+            await auth.use('api').authenticate()
+            const user = auth.use('api').user
+            const recipient = await Recipient.findBy('user_id', user?.id);
+            
+            if (!user || !recipient) {
+                throw new Error('You are not authorized!')
+            }
+
+
+            const data = request.all()
+            recipient.merge(data)
+            console.log("alou2")
+
+            await recipient.save()
+        
+            return response.ok(recipient)
+        } catch {
+            return response.unauthorized({ message: 'You are not authorized!' })
+        }
+    }
 }

@@ -1,7 +1,6 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Application from '@ioc:Adonis/Core/Application'
 import Donation from 'App/Models/Donation'
-import House from 'App/Models/House'
 
 import fs from 'fs'
 import path from 'path'

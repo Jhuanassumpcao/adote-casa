@@ -28,6 +28,7 @@ Route.get('/', async () => {
 // RECIPIENTS
 //se mudar a ordem para de funcionar deixar assim
 Route.get('/recipients/me', 'RecipientsController.view')
+Route.put('/recipients/me', 'RecipientsController.edit')
 Route.get("/recipients", "RecipientsController.index")
 Route.post("/recipients", "RecipientsController.store")
 Route.get("/recipients/:id", "RecipientsController.show")
