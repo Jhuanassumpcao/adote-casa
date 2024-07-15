@@ -30,7 +30,7 @@ export default class RecipientsController {
         return response.ok(recipient)
     }
     
-    public async update({auth, params, request, response}: HttpContextContract) {
+    public async update({auth, request, response}: HttpContextContract) {
         const data = request.except(['email'])
         const email = request.input('email')
         await auth.use('api').authenticate()
