@@ -106,8 +106,8 @@ export default class HousesController {
             } 
             
             const house = new House()
-            house.fill(houseData)
-
+            house.merge(houseData)
+            console.log(house)
             await house.save()
 
             return response.created({ message: 'House created successfully!', house })
