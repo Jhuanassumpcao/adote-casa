@@ -3,7 +3,6 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Application from '@ioc:Adonis/Core/Application'
 import Env from '@ioc:Adonis/Core/Env'
 import path from 'path'
-import fs from 'fs'
 
 import House from 'App/Models/House'
 import Recipient from 'App/Models/Recipient'
@@ -219,5 +218,4 @@ export default class HousesController {
             return response.unauthorized({ message: 'You are not authorized!' })
         }
     }
-
 }
