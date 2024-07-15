@@ -52,7 +52,8 @@ export default class HousesController {
         // houses.file_url contains the path to the image on system
         houses.forEach(house => {
             if (house.file_url) {
-              house.file_url = `${Env.get('APP_URL')}/uploads/${path.basename(house.file_url)}`
+                house.file_url = `uploads/${path.basename(house.file_url)}`
+              //house.file_url = `${Env.get('APP_URL')}/uploads/${path.basename(house.file_url)}`
             } else {
               house.file_url = null
             }
