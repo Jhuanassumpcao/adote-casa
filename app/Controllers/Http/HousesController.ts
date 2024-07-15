@@ -88,23 +88,25 @@ export default class HousesController {
                 })
             }
             
-            const houseData = request.only([
-                'title', 
-                'description', 
-                'pixkey', 
-                'address', 
-                'city', 
-                'state', 
-                'value', 
-                'bairro', 
-                'cep', 
-                'number'
-            ])
-
+            const houseData = {
+                ...request.only([
+                                'title', 
+                                'description', 
+                                'pixkey', 
+                                'address', 
+                                'city', 
+                                'state', 
+                                'value', 
+                                'bairro', 
+                                'cep', 
+                                'number'
+                            ]),
+                file_url: file_url,
+                cadastred_by_user_id: user.id
+            } 
+            
             const house = new House()
             house.fill(houseData)
-            house.cadastred_by_user_id = user.id
-            house.file_url = file_url
 
             await house.save()
 
