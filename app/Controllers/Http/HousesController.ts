@@ -134,7 +134,7 @@ export default class HousesController {
         const return_data = {
             ...house.toJSON(),
             owner_name: receiptName.name,
-            total_donations: donations.reduce((acc, donation) => acc + parseInt(donation.donationValue), 0)
+            total_donations: donations.reduce((acc, donation) => acc + parseInt(donation.donationValue.toString()), 0)
         }
         
     
