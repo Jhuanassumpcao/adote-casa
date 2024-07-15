@@ -3,7 +3,10 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Application from '@ioc:Adonis/Core/Application'
 import Env from '@ioc:Adonis/Core/Env'
 import path from 'path'
+<<<<<<< HEAD
 
+=======
+>>>>>>> origin/master
 import House from 'App/Models/House'
 import Recipient from 'App/Models/Recipient'
 import Donation from 'App/Models/Donation'
@@ -53,7 +56,8 @@ export default class HousesController {
         // houses.file_url contains the path to the image on system
         houses.forEach(house => {
             if (house.file_url) {
-              house.file_url = `${Env.get('APP_URL')}/uploads/${path.basename(house.file_url)}`
+                house.file_url = `tmp/uploads/${path.basename(house.file_url)}`
+              //house.file_url = `${Env.get('APP_URL')}/uploads/${path.basename(house.file_url)}`
             } else {
               house.file_url = null
             }
@@ -105,8 +109,8 @@ export default class HousesController {
             } 
             
             const house = new House()
-            house.fill(houseData)
-
+            house.merge(houseData)
+            console.log(house)
             await house.save()
 
             return response.created({ message: 'House created successfully!', house })
@@ -133,7 +137,7 @@ export default class HousesController {
         const return_data = {
             ...house.toJSON(),
             owner_name: receiptName.name,
-            total_donations: donations.reduce((acc, donation) => acc + parseInt(donation.donationValue), 0)
+            total_donations: donations.reduce((acc, donation) => acc + parseInt(donation.donationValue.toString()), 0)
         }
         
     
