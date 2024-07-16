@@ -19,12 +19,14 @@ export default Env.rules({
 	PORT: Env.schema.number(),
 	APP_KEY: Env.schema.string(),
 	APP_NAME: Env.schema.string(),
-  DRIVE_DISK: Env.schema.enum(['local'] as const),
+  	DRIVE_DISK: Env.schema.enum(['local'] as const),
 	NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
 	MYSQL_HOST: Env.schema.string({ format: 'host' }),
     MYSQL_PORT: Env.schema.number(),
     MYSQL_USER: Env.schema.string(),
     MYSQL_PASSWORD: Env.schema.string.optional(),
     MYSQL_DB_NAME: Env.schema.string(),
-
+	GOOGLE_CLIENT_ID: Env.schema.string(),
+	GOOGLE_CLIENT_SECRET: Env.schema.string(),
+	GOOGLE_REDIRECT_URI: Env.schema.string(),
 })

@@ -3,13 +3,10 @@ import Database from '@ioc:Adonis/Lucid/Database'
 import Application from '@ioc:Adonis/Core/Application'
 import Env from '@ioc:Adonis/Core/Env'
 import path from 'path'
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/master
 import House from 'App/Models/House'
 import Recipient from 'App/Models/Recipient'
 import Donation from 'App/Models/Donation'
+import GoogleDriveService from 'App/Services/GoogleDriveService'
 
 export default class HousesController {
     // GET /houses
@@ -53,6 +50,8 @@ export default class HousesController {
             .select('recipients.name as owner_name')
             .paginate(currentPage, resultsPerPage)
 
+        
+
         // houses.file_url contains the path to the image on system
         houses.forEach(house => {
             if (house.file_url) {
@@ -80,15 +79,17 @@ export default class HousesController {
                 size: '2mb',
                 extnames: ['jpg', 'png', 'jpeg'],
             })
-    
+
             var file_url: string | null = null;
 
             if (image) {
-                file_url = new Date().getTime().toString() + '.' + image.extname
+                await image.moveToDisk('./uploads');
+                const filePath = `./uploads/${image.fileName}`;
+                const mimeType = image.headers['content-type'];
     
-                await image.move(Application.tmpPath('uploads'), {
-                    name: file_url,
-                })
+                const fileData = await GoogleDriveService.uploadFile(filePath, mimeType);
+    
+                response.send({ fileId: fileData.id });
             }
             
             const houseData = {

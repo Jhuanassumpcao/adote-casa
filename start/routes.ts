@@ -42,6 +42,9 @@ Route.get("/houses/:id", "HousesController.show")
 Route.put("/houses/:id", "HousesController.update")
 Route.delete("/houses/:id", "HousesController.destroy")
 
+Route.get('/google-auth', 'GoogleAuthController.getAuthUrl');
+Route.get('/oauth2callback', 'GoogleAuthController.oauthCallback');
+
 // LOGIN
 Route.post('/login', 'UsersController.login')
 
