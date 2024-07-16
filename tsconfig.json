@@ -12,6 +12,7 @@
     "rootDir": "./",
     "baseUrl": "./",
     "sourceMap": true,
+    "skipLibCheck": true,
     "paths": {
       "App/*": [
         "./app/*"

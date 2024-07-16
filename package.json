@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node ace serve --watch",
-    "build": "node ace build --production",
+    "build": "tsc --noEmit && node ace build --production",
     "vercel-build": "node ace migration:rollback --force && node ace migration:run --force",
     "start": "npm ci --production  && node build/server.js",
     "test": "node ace test"
