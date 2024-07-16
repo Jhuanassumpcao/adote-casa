@@ -4,6 +4,7 @@ import GoogleDriveService from 'App/Services/GoogleDriveService';
 export default class GoogleAuthController {
   public async getAuthUrl({ response }: HttpContextContract) {
     const authUrl = GoogleDriveService.getAuthUrl();
+    console.log(authUrl);
     response.redirect(authUrl);
   }
 
