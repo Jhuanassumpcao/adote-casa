@@ -1,6 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext';
 import { google } from 'googleapis';
-import { OAuth2Client } from 'google-auth-library';
 import { MultipartFileContract } from '@ioc:Adonis/Core/BodyParser';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -8,7 +7,7 @@ import { tmpdir } from 'os';
 
 const credentials = require('../../../credentials.json');
 
-const { client_secret, client_id, redirect_uris } = credentials.web;
+const { client_secret, client_id } = credentials.web;
 const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, 'http://localhost:3333/oauth2callback');
 
 export default class GoogleDriveController {

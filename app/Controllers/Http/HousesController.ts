@@ -1,16 +1,10 @@
 import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
-import Application from '@ioc:Adonis/Core/Application'
-import Env from '@ioc:Adonis/Core/Env'
 import Route from '@ioc:Adonis/Core/Route'
-import path from 'path'
 import { readFile } from 'fs/promises'
 import House from 'App/Models/House'
 import Recipient from 'App/Models/Recipient'
 import Donation from 'App/Models/Donation'
-import GoogleDriveService from 'App/Services/GoogleDriveService'
-import { file } from 'googleapis/build/src/apis/file'
-import sharp from 'sharp'
 
 export default class HousesController {
     // GET /houses
@@ -44,7 +38,6 @@ export default class HousesController {
         const currentPage = page || 1;
         const resultsPerPage = Math.max(1, Math.min(perPage || 10, 50));
 
-        //busca em ordem aqui
         const houses = await Database
             .from(query.as('subquery'))
             .whereRaw('subquery.total_donations < subquery.value')
@@ -54,9 +47,7 @@ export default class HousesController {
             .select('recipients.name as owner_name')
             .paginate(currentPage, resultsPerPage)
 
-        
 
-        // houses.file_url contains the path to the image on system
         houses.forEach(house => {
           if (house.file_url) {
               house.file_url = Route.makeSignedUrl('getImage', { id: house.id }, { expiresIn: '30mins' });
@@ -76,7 +67,6 @@ export default class HousesController {
           throw new Error('You are not authorized!')
         }
   
-        // Valida os dados da requisição
         const houseData = request.only([
           'title',
           'description',
@@ -106,15 +96,13 @@ export default class HousesController {
           //   file_url = fileData.id;
           // }
 
-  
-        // Lida com o upload do arquivo de imagem
         const image = request.file('file_url', {
           extnames: ['image'],
           size: '2mb'
         })
         
         if (image) {
-          // Lê o arquivo de imagem como buffer
+
           const imageBuffer = await readFile(image.tmpPath!)
           houseData['file_url']= imageBuffer
         }
@@ -141,8 +129,7 @@ export default class HousesController {
         const donations = await Donation.query().where('house_id', house.id).select('donation_value').exec()
   
         let fileUrl;
-  
-        // Converte a imagem para base64
+
         if (house.file_url) {
           fileUrl = `data:image/jpeg;base64,${house.file_url.toString('base64')}`
         }
@@ -172,7 +159,6 @@ export default class HousesController {
         })
         
         if (image) {
-          // Lê o arquivo de imagem como buffer
           const imageBuffer = await readFile(image.tmpPath!)
           house['file_url']= imageBuffer
         }
