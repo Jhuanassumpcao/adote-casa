@@ -44,7 +44,7 @@ const corsConfig: CorsConfig = {
   |                     one of the above values.
   |
   */
-  origin: false,
+  origin: true,
 
   /*
   |--------------------------------------------------------------------------
@@ -103,6 +103,7 @@ const corsConfig: CorsConfig = {
     'content-type',
     'expires',
     'last-modified',
+    'Access-Control-Allow-Origin',
     'pragma',
   ],
 
