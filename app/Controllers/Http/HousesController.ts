@@ -2,11 +2,15 @@ import type { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Application from '@ioc:Adonis/Core/Application'
 import Env from '@ioc:Adonis/Core/Env'
+import Route from '@ioc:Adonis/Core/Route'
 import path from 'path'
+import { readFile } from 'fs/promises'
 import House from 'App/Models/House'
 import Recipient from 'App/Models/Recipient'
 import Donation from 'App/Models/Donation'
 import GoogleDriveService from 'App/Services/GoogleDriveService'
+import { file } from 'googleapis/build/src/apis/file'
+import sharp from 'sharp'
 
 export default class HousesController {
     // GET /houses
@@ -54,95 +58,108 @@ export default class HousesController {
 
         // houses.file_url contains the path to the image on system
         houses.forEach(house => {
-            if (house.file_url) {
-                house.file_url = `tmp/uploads/${path.basename(house.file_url)}`
-              //house.file_url = `${Env.get('APP_URL')}/uploads/${path.basename(house.file_url)}`
-            } else {
-              house.file_url = null
-            }
-        })
-
+          if (house.file_url) {
+              house.file_url = Route.makeSignedUrl('getImage', { id: house.id }, { expiresIn: '30mins' });
+              const baseUrl = `${request.protocol()}://${request.host()}`;
+              house.file_url = `${baseUrl}${house.file_url}`;
+          }
+      });
         return response.ok(houses)
     }
     
     // POST /houses
     public async store({ auth, request, response }: HttpContextContract) {
-        try {
-          await auth.use('api').authenticate();
-          const user = auth.use('api').user;
-          if (!user) {
-            throw new Error('You are not authorized!');
-          }
-      
-          const image = request.file('file_url', {
-            size: '2mb',
-            extnames: ['jpg', 'png', 'jpeg'],
-          });
-      
-          let file_url: string | null | undefined = null;
-      
-          if (image) {
-            await image.moveToDisk('uploads');
-            const filePath = `tmp/uploads/uploads/${image.fileName}`;
-            const mimeType = image.headers['content-type'];
-      
-            const fileData = await GoogleDriveService.uploadFile(filePath, mimeType, '1Ih_Tu0kaL1-y2H5jKmWqALLfhAJVi10K');
-            file_url = fileData.id;
-          }
-      
-          const houseData = {
-            ...request.only([
-              'title', 
-              'description', 
-              'pixkey', 
-              'address', 
-              'city', 
-              'state', 
-              'value', 
-              'bairro', 
-              'cep', 
-              'number'
-            ]),
-            file_url: file_url,
-            cadastred_by_user_id: user.id,
-          };
-      
-          const house = new House();
-          house.merge(houseData);
-          await house.save();
-      
-          return response.created({ message: 'House created successfully!', house });
-        } catch (error) {
-          console.error('Error creating house:', error);
-          return response.unauthorized({ message: 'You are not authorized!' });
+      try {
+        await auth.use('api').authenticate()
+        const user = auth.use('api').user
+        if (!user) {
+          throw new Error('You are not authorized!')
         }
-      }
+  
+        // Valida os dados da requisição
+        const houseData = request.only([
+          'title',
+          'description',
+          'pixkey',
+          'address',
+          'city',
+          'state',
+          'value',
+          'bairro',
+          'cep',
+          'number'
+        ])
+
+        // const image = request.file('file_url', {
+          //   size: '2mb',
+          //   extnames: ['jpg', 'png', 'jpeg'],
+          // });
       
+          // let file_url: string | null | undefined = null;
+      
+          // if (image) {
+          //   await image.moveToDisk('uploads');
+          //   const filePath = `tmp/uploads/uploads/${image.fileName}`;
+          //   const mimeType = image.headers['content-type'];
+      
+          //   const fileData = await GoogleDriveService.uploadFile(filePath, mimeType, '1Ih_Tu0kaL1-y2H5jKmWqALLfhAJVi10K');
+          //   file_url = fileData.id;
+          // }
+
+  
+        // Lida com o upload do arquivo de imagem
+        const image = request.file('file_url', {
+          extnames: ['image'],
+          size: '2mb'
+        })
+        
+        if (image) {
+          // Lê o arquivo de imagem como buffer
+          const imageBuffer = await readFile(image.tmpPath!)
+          houseData['file_url']= imageBuffer
+        }
+  
+        houseData['cadastred_by_user_id'] = user.id
+  
+        const house = new House()
+        house.merge(houseData)
+        await house.save()
+  
+        return response.created({ message: 'House created successfully!', house })
+      } catch (error) {
+        console.error('Error creating house:', error)
+        return response.unauthorized({ message: 'You are not authorized!' })
+      }
+    }
     
 
     // GET /houses/:id
-    public async show({params, response}: HttpContextContract) {
+    public async show({ params, response }: HttpContextContract) {
+      try {
         const house = await House.findOrFail(params.id)
-
         const receiptName = await Recipient.findOrFail(house.cadastred_by_user_id)
         const donations = await Donation.query().where('house_id', house.id).select('donation_value').exec()
-        
+  
+        let fileUrl;
+  
+        // Converte a imagem para base64
         if (house.file_url) {
-            house.file_url = `${Env.get('APP_URL')}/uploads/${path.basename(house.file_url)}`
-        } else {
-            house.file_url = null
+          fileUrl = `data:image/jpeg;base64,${house.file_url.toString('base64')}`
         }
-
+  
         const return_data = {
-            ...house.toJSON(),
-            owner_name: receiptName.name,
-            total_donations: donations.reduce((acc, donation) => acc + parseInt(donation.donationValue.toString()), 0)
+          ...house.toJSON(),
+          owner_name: receiptName.name,
+          total_donations: donations.reduce((acc, donation) => acc + parseInt(donation.donationValue.toString()), 0),
+          file_url: fileUrl,
         }
-        
-    
+  
         return response.ok(return_data)
+      } catch (error) {
+        console.error('Error fetching house details:', error)
+        return response.internalServerError('Failed to fetch house details')
+      }
     }
-    
     // PUT /houses/:id
     public async update({params, request, response}: HttpContextContract) {
 
@@ -150,24 +167,16 @@ export default class HousesController {
         const house = await House.findOrFail(params.id)
 
         const image = request.file('file_url', {
-            size: '2mb',
-            extnames: ['jpg', 'png', 'jpeg'],
+          extnames: ['image'],
+          size: '2mb'
         })
-
-        var file_url: string | null = null;
-
+        
         if (image) {
-            file_url = new Date().getTime().toString() + '.' + image.extname
-
-            await image.move(Application.tmpPath('uploads'), {
-                name: file_url,
-            })
-
-            data.file_url = file_url
-        }else{
-            data.file_url = house.file_url
+          // Lê o arquivo de imagem como buffer
+          const imageBuffer = await readFile(image.tmpPath!)
+          house['file_url']= imageBuffer
         }
-
+  
         house.merge(data)
 
         await house.save()

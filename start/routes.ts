@@ -19,12 +19,30 @@
 */
 
 import Route from '@ioc:Adonis/Core/Route'
+import Database from '@ioc:Adonis/Lucid/Database';
+import sharp from 'sharp';
 // import Recipient from 'App/Models/Recipient'
 
 Route.get('/', async () => {
   return { hello: 'world' }
 })
+Route.get('image/:id', async ({ params, response }) => {
+  const house = await Database
+      .from('houses')
+      .where('id', params.id)
+      .first();
 
+  if (house && house.file_url) {
+      const imageBuffer = Buffer.from(house.file_url, 'base64'); // Certifique-se de usar 'base64' para decodificar corretamente
+      const resizedBuffer = await sharp(imageBuffer)
+          .resize(200) // Redimensiona a imagem para uma largura de 200px
+          .toBuffer();
+      response.type('image/png');
+      return response.send(resizedBuffer);
+  } else {
+      return response.notFound('Image not found');
+  }
+}).as('getImage');
 // RECIPIENTS
 //se mudar a ordem para de funcionar deixar assim
 Route.get('/recipients/me', 'RecipientsController.view')

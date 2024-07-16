@@ -58,23 +58,25 @@ export default class GoogleDriveController {
   }
   
   // Faz download do arquivo do Google Drive
-  public async download({ params, response }: HttpContextContract) {
-    const fileId = params.id;
-
+  public async downloadFile(fileId: string, response: any) {
+    const tokens = await fs.readFile('tokens.json', 'utf-8');
+    oAuth2Client.setCredentials(JSON.parse(tokens));
+  
     try {
       const drive = google.drive({ version: 'v3', auth: oAuth2Client });
       const fileResponse = await drive.files.get(
         { fileId: fileId, alt: 'media' },
         { responseType: 'stream' }
       );
-
-      response.type('image/jpeg');
-      fileResponse.data.pipe(response.response);
+  
+      response.type('image/jpeg'); // Adjust the MIME type based on your file type
+      fileResponse.data.pipe(response);
     } catch (error) {
       console.error('Error downloading file:', error);
-      return response.internalServerError('Failed to download file');
+      throw new Error('Failed to download file');
     }
   }
+  
 
   // Função auxiliar para fazer upload do arquivo
   private async uploadFile(fileBuffer: Buffer, fileName: string, folderId: string): Promise<string | null> {

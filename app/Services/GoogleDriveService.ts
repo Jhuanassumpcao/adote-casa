@@ -43,6 +43,35 @@ class GoogleDriveService {
       throw error;
     }
   }
+
+  public static async generatePublicUrl(fileId: string) {
+    const tokens = await fs.readFile('tokens.json', 'utf-8');
+    oAuth2Client.setCredentials(JSON.parse(tokens));
+
+    const drive = google.drive({ version: 'v3', auth: oAuth2Client });
+
+    try {
+      // Change the file permissions to public
+      await drive.permissions.create({
+        fileId: fileId,
+        requestBody: {
+          role: 'reader',
+          type: 'anyone',
+        },
+      });
+
+      // Get the public URL
+      const result = await drive.files.get({
+        fileId: fileId,
+        fields: 'webViewLink, webContentLink',
+      });
+
+      return result.data;
+    } catch (error) {
+      console.error('Error generating public URL:', error);
+      throw error;
+    }
+  }
 }
 
 export default GoogleDriveService;

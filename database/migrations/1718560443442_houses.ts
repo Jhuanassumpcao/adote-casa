@@ -21,7 +21,7 @@ export default class extends BaseSchema {
       table.string('address').notNullable()
       table.string('city').notNullable()
       table.string('state').notNullable()
-      table.string('file_url').nullable()
+      table.specificType('file_url', "longblob").nullable()
       table.float('value').nullable()
       table.string('bairro').notNullable()
       table.string('cep').notNullable()
