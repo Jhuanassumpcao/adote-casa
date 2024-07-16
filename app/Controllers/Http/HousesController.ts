@@ -66,60 +66,58 @@ export default class HousesController {
     }
     
     // POST /houses
-    public async store({auth, request, response}: HttpContextContract) {
+    public async store({ auth, request, response }: HttpContextContract) {
         try {
-            await auth.use('api').authenticate()
-            const user = auth.use('api').user
-            if (!user) {
-                throw new Error('You are not authorized!')
-            }
-
-            
-            const image = request.file('file_url', {
-                size: '2mb',
-                extnames: ['jpg', 'png', 'jpeg'],
-            })
-
-            var file_url: string | null = null;
-
-            if (image) {
-                await image.moveToDisk('./uploads');
-                const filePath = `./uploads/${image.fileName}`;
-                const mimeType = image.headers['content-type'];
-    
-                const fileData = await GoogleDriveService.uploadFile(filePath, mimeType);
-    
-                response.send({ fileId: fileData.id });
-            }
-            
-            const houseData = {
-                ...request.only([
-                                'title', 
-                                'description', 
-                                'pixkey', 
-                                'address', 
-                                'city', 
-                                'state', 
-                                'value', 
-                                'bairro', 
-                                'cep', 
-                                'number'
-                            ]),
-                file_url: file_url,
-                cadastred_by_user_id: user.id
-            } 
-            
-            const house = new House()
-            house.merge(houseData)
-            console.log(house)
-            await house.save()
-
-            return response.created({ message: 'House created successfully!', house })
+          await auth.use('api').authenticate();
+          const user = auth.use('api').user;
+          if (!user) {
+            throw new Error('You are not authorized!');
+          }
+      
+          const image = request.file('file_url', {
+            size: '2mb',
+            extnames: ['jpg', 'png', 'jpeg'],
+          });
+      
+          let file_url: string | null | undefined = null;
+      
+          if (image) {
+            await image.moveToDisk('uploads');
+            const filePath = `tmp/uploads/uploads/${image.fileName}`;
+            const mimeType = image.headers['content-type'];
+      
+            const fileData = await GoogleDriveService.uploadFile(filePath, mimeType, '1Ih_Tu0kaL1-y2H5jKmWqALLfhAJVi10K');
+            file_url = fileData.id;
+          }
+      
+          const houseData = {
+            ...request.only([
+              'title', 
+              'description', 
+              'pixkey', 
+              'address', 
+              'city', 
+              'state', 
+              'value', 
+              'bairro', 
+              'cep', 
+              'number'
+            ]),
+            file_url: file_url,
+            cadastred_by_user_id: user.id,
+          };
+      
+          const house = new House();
+          house.merge(houseData);
+          await house.save();
+      
+          return response.created({ message: 'House created successfully!', house });
         } catch (error) {
-            console.error('Error creating house:', error)
-            return response.unauthorized({ message: 'You are not authorized!' })
+          console.error('Error creating house:', error);
+          return response.unauthorized({ message: 'You are not authorized!' });
         }
-    }
+      }
+      
     
 
     // GET /houses/:id
